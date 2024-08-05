@@ -1,0 +1,14 @@
+{
+  "name": "ems",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "server": "cd server && nodemon server.js",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "concurrently": "^6.2.1",
+    "react-router-dom": "^6.25.1"
+  }
+}
