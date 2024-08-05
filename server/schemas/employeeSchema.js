@@ -11,10 +11,17 @@ const typeDefs = gql`
     department: String!
     employeeType: String!
     currentStatus: Boolean!
+    retirementDate: String
+  }
+
+  type DeleteResponse {
+    success: Boolean!
+    message: String!
+    employee: Employee
   }
 
   type Query {
-    employees(type: String, searchTerm: String): [Employee]
+    employees(type: String, searchTerm: String, filterRetirement: Boolean): [Employee]
     employee(id: ID!): Employee
   }
 
@@ -37,7 +44,7 @@ const typeDefs = gql`
       currentStatus: Boolean
     ): Employee
 
-    deleteEmployee(id: ID!): Employee
+    deleteEmployee(id: ID!): DeleteResponse
   }
 `;
 

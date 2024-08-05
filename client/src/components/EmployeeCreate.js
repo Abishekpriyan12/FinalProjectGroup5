@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { Box, Input, Button, Select, FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/react';
+import { Box, Input, Button, Select, FormControl, FormLabel, FormErrorMessage, Switch } from '@chakra-ui/react';
 import { CREATE_EMPLOYEE } from '../graphql/mutations';
 import { GET_EMPLOYEES } from '../graphql/queries';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ const EmployeeCreate = () => {
     title: 'Employee',
     department: 'IT',
     employeeType: 'FullTime',
+    currentStatus: true, // Default to true as new employees are typically active
   });
 
   const [errors, setErrors] = useState({});
@@ -31,7 +32,8 @@ const EmployeeCreate = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormState({ ...formState, [name]: name === "dateOfJoining" ? new Date(value).toISOString() : value });
+    const isCheckbox = e.target.type === 'checkbox';
+    setFormState({ ...formState, [name]: isCheckbox ? e.target.checked : value });
   };
 
   const validateForm = () => {
@@ -50,7 +52,9 @@ const EmployeeCreate = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    await createEmployee({ variables: { ...formState, age: parseInt(formState.age) } });
+    await createEmployee({
+      variables: { ...formState, age: parseInt(formState.age) }
+    });
     setFormState({
       firstName: '',
       lastName: '',
@@ -59,6 +63,7 @@ const EmployeeCreate = () => {
       title: 'Employee',
       department: 'IT',
       employeeType: 'FullTime',
+      currentStatus: true
     });
     navigate('/employees/all'); // Redirect to the employee list page on successful creation
   };
@@ -112,6 +117,10 @@ const EmployeeCreate = () => {
             <option value="Contract">Contract</option>
             <option value="Seasonal">Seasonal</option>
           </Select>
+        </FormControl>
+        <FormControl mb={4}>
+          <FormLabel>Current Status</FormLabel>
+          <Switch name="currentStatus" isChecked={formState.currentStatus} onChange={handleInputChange} />
         </FormControl>
         <Button colorScheme="red" type="submit">
           Save
