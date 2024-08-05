@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Table, Thead, Tbody, Tr, Th, Td, Button } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Button, useToast } from '@chakra-ui/react';
 import { GET_EMPLOYEES } from '../graphql/queries';
 import { DELETE_EMPLOYEE } from '../graphql/mutations';
 import { Link } from 'react-router-dom';
@@ -8,21 +8,41 @@ import EmployeeUpdateModal from './EmployeeUpdateModal';
 
 const EmployeeTable = () => {
   const { loading, error, data } = useQuery(GET_EMPLOYEES);
+  const toast = useToast();
   const [deleteEmployee] = useMutation(DELETE_EMPLOYEE, {
     update(cache, { data: { deleteEmployee } }) {
-      const existingEmployees = cache.readQuery({ query: GET_EMPLOYEES });
-      const newEmployees = existingEmployees.employees.filter(emp => emp.id !== deleteEmployee.id);
-      cache.writeQuery({
-        query: GET_EMPLOYEES,
-        data: { employees: newEmployees },
-      });
+      if (deleteEmployee) {
+        const existingEmployees = cache.readQuery({ query: GET_EMPLOYEES });
+        const newEmployees = existingEmployees.employees.filter(emp => emp.id !== deleteEmployee.id);
+        cache.writeQuery({
+          query: GET_EMPLOYEES,
+          data: { employees: newEmployees },
+        });
+        toast({
+          title: 'Employee deleted.',
+          description: "The employee has been successfully deleted.",
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     }
   });
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  const handleDelete = (id) => {
-    deleteEmployee({ variables: { id } });
+  const handleDelete = (employee) => {
+    if (employee.currentStatus) {
+      toast({
+        title: "Can't delete employee",
+        description: "CAN’T DELETE EMPLOYEE – STATUS ACTIVE",
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      deleteEmployee({ variables: { id: employee.id } });
+    }
   };
 
   const openUpdateModal = (id) => {
@@ -72,7 +92,7 @@ const EmployeeTable = () => {
                 <Button colorScheme="yellow" onClick={() => openUpdateModal(employee.id)} mr={2}>
                   Edit
                 </Button>
-                <Button colorScheme="red" onClick={() => handleDelete(employee.id)}>
+                <Button colorScheme="red" onClick={() => handleDelete(employee)}>
                   Delete
                 </Button>
               </Td>
