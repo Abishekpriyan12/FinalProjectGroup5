@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
+import {  useMutation } from '@apollo/client';
 import { Box, Input, Button, Select, FormControl, FormLabel, FormErrorMessage, Switch } from '@chakra-ui/react';
 import { CREATE_EMPLOYEE } from '../graphql/mutations';
 import { GET_EMPLOYEES } from '../graphql/queries';
 import { useNavigate } from 'react-router-dom';
+
 import './EmployeeCreate.css';
 
 const EmployeeCreate = () => {
@@ -15,25 +16,27 @@ const EmployeeCreate = () => {
     title: 'Employee',
     department: 'IT',
     employeeType: 'FullTime',
-    currentStatus: true, // Default to true as new employees are typically active
+    currentStatus: true, 
   });
 
   const [errors, setErrors] = useState({});
-  const [createEmployee] = useMutation(CREATE_EMPLOYEE, {
-    update(cache, { data: { createEmployee } }) {
-      const { employees } = cache.readQuery({ query: GET_EMPLOYEES });
-      cache.writeQuery({
-        query: GET_EMPLOYEES,
-        data: { employees: [...employees, createEmployee] },
-      });
-    }
-  });
   const navigate = useNavigate();
+  
+  const [createEmployee] = useMutation(CREATE_EMPLOYEE, {
+    refetchQueries: [{ query: GET_EMPLOYEES }], 
+    onCompleted: () => {
+      navigate('/');
+      window.location.reload();
+      
+    },
+  });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    const isCheckbox = e.target.type === 'checkbox';
-    setFormState({ ...formState, [name]: isCheckbox ? e.target.checked : value });
+    const { name, value, type, checked } = e.target;
+    setFormState(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const validateForm = () => {
@@ -53,42 +56,31 @@ const EmployeeCreate = () => {
     if (!validateForm()) return;
 
     await createEmployee({
-      variables: { ...formState, age: parseInt(formState.age) }
+      variables: { ...formState, age: parseInt(formState.age, 10) }
     });
-    setFormState({
-      firstName: '',
-      lastName: '',
-      age: '',
-      dateOfJoining: '',
-      title: 'Employee',
-      department: 'IT',
-      employeeType: 'FullTime',
-      currentStatus: true
-    });
-    navigate('/employees/all'); // Redirect to the employee list page on successful creation
   };
 
   return (
     <Box bg="white" p={8} borderRadius="md" boxShadow="lg" maxWidth="500px" mx="auto" mt={10}>
       <form onSubmit={handleSubmit}>
-        <FormControl mb={4} isInvalid={errors.firstName}>
+        <FormControl isInvalid={errors.firstName} mb={4}>
           <FormLabel>First Name</FormLabel>
           <Input name="firstName" value={formState.firstName} onChange={handleInputChange} />
           <FormErrorMessage>{errors.firstName}</FormErrorMessage>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.lastName}>
+        <FormControl isInvalid={errors.lastName} mb={4}>
           <FormLabel>Last Name</FormLabel>
           <Input name="lastName" value={formState.lastName} onChange={handleInputChange} />
           <FormErrorMessage>{errors.lastName}</FormErrorMessage>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.age}>
+        <FormControl isInvalid={errors.age} mb={4}>
           <FormLabel>Age</FormLabel>
-          <Input name="age" value={formState.age} onChange={handleInputChange} type="number" min="20" max="70" />
+          <Input name="age" type="number" min="20" max="70" value={formState.age} onChange={handleInputChange} />
           <FormErrorMessage>{errors.age}</FormErrorMessage>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.dateOfJoining}>
+        <FormControl isInvalid={errors.dateOfJoining} mb={4}>
           <FormLabel>Date of Joining</FormLabel>
-          <Input name="dateOfJoining" value={formState.dateOfJoining} onChange={handleInputChange} type="date" />
+          <Input name="dateOfJoining" type="date" value={formState.dateOfJoining} onChange={handleInputChange} />
           <FormErrorMessage>{errors.dateOfJoining}</FormErrorMessage>
         </FormControl>
         <FormControl mb={4}>
@@ -122,9 +114,7 @@ const EmployeeCreate = () => {
           <FormLabel>Current Status</FormLabel>
           <Switch name="currentStatus" isChecked={formState.currentStatus} onChange={handleInputChange} />
         </FormControl>
-        <Button colorScheme="red" type="submit">
-          Save
-        </Button>
+        <Button colorScheme="blue" type="submit">Save</Button>
       </form>
     </Box>
   );

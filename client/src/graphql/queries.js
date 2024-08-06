@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_EMPLOYEES = gql`
-  query GetEmployees($type: String) {
-    employees(type: $type) {
+  query GetEmployees($type: String, $isActive: Boolean) {
+    employees(type: $type, isActive: $isActive) {
       id
       firstName
       lastName
@@ -12,6 +12,7 @@ export const GET_EMPLOYEES = gql`
       department
       employeeType
       currentStatus
+      isActive
     }
   }
 `;
@@ -28,6 +29,7 @@ export const GET_EMPLOYEE = gql`
       department
       employeeType
       currentStatus
+      isActive
     }
   }
 `;
