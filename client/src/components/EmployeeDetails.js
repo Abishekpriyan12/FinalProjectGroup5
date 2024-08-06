@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GET_EMPLOYEE } from '../graphql/queries';
-import { DELETE_EMPLOYEE } from '../graphql/mutations';
+import { DEACTIVATE_EMPLOYEE } from '../graphql/mutations'; 
 import { Box, Heading, Text, Button, Flex } from '@chakra-ui/react';
 
 const EmployeeDetails = () => {
@@ -11,16 +11,16 @@ const EmployeeDetails = () => {
   const { loading, error, data } = useQuery(GET_EMPLOYEE, {
     variables: { id },
   });
-  const [deleteEmployee] = useMutation(DELETE_EMPLOYEE);
+  const [deactivateEmployee] = useMutation(DEACTIVATE_EMPLOYEE);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   const employee = data.employee;
 
-  const handleDelete = async () => {
-    await deleteEmployee({ variables: { id: employee.id } });
-    navigate('/'); 
+  const handleDeactivate = async () => {
+    await deactivateEmployee({ variables: { id: employee.id } });
+    navigate('/'); // Redirect to the homepage or employee list after operation
   };
 
   const handleEdit = () => {
@@ -40,7 +40,14 @@ const EmployeeDetails = () => {
       <Text><strong>Department:</strong> {employee.department}</Text>
       <Text><strong>Employee Type:</strong> {employee.employeeType}</Text>
       <Text><strong>Status:</strong> {employee.currentStatus ? 'Working' : 'Retired'}</Text>
-      
+      <Flex mt={4}>
+        <Button colorScheme="blue" onClick={handleEdit} mr={2}>
+          Edit
+        </Button>
+        <Button colorScheme="red" onClick={handleDeactivate}>
+          {employee.currentStatus ? 'Deactivate' : 'Already Inactive'}
+        </Button>
+      </Flex>
     </Box>
   );
 };

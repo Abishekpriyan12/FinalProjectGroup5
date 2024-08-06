@@ -1,27 +1,33 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Table, Thead, Tbody, Tr, Th, Td, Button, useToast } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Button, useToast, Select } from '@chakra-ui/react';
 import { GET_EMPLOYEES } from '../graphql/queries';
-import { DELETE_EMPLOYEE } from '../graphql/mutations';
+import { DEACTIVATE_EMPLOYEE } from '../graphql/mutations';
 import { Link } from 'react-router-dom';
 import EmployeeUpdateModal from './EmployeeUpdateModal';
 
 const EmployeeTable = () => {
-  const { loading, error, data } = useQuery(GET_EMPLOYEES);
+  const [isActiveFilter, setIsActiveFilter] = useState(true);
+  const { loading, error, data, refetch } = useQuery(GET_EMPLOYEES, {
+    variables: { isActive: isActiveFilter }
+  });
   const toast = useToast();
-  const [deleteEmployee] = useMutation(DELETE_EMPLOYEE, {
-    update(cache, { data: { deleteEmployee } }) {
-      if (deleteEmployee) {
-        const existingEmployees = cache.readQuery({ query: GET_EMPLOYEES });
-        const newEmployees = existingEmployees.employees.filter(emp => emp.id !== deleteEmployee.id);
-        cache.writeQuery({
-          query: GET_EMPLOYEES,
-          data: { employees: newEmployees },
-        });
+  const [deactivateEmployee] = useMutation(DEACTIVATE_EMPLOYEE, {
+    onCompleted: (data) => {
+      if (data.deactivateEmployee.success) {
         toast({
-          title: 'Employee deleted.',
-          description: "The employee has been successfully deleted.",
+          title: 'Employee deactivated.',
+          description: data.deactivateEmployee.message,
           status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+        refetch();
+      } else {
+        toast({
+          title: "Operation failed",
+          description: data.deactivateEmployee.message,
+          status: 'error',
           duration: 5000,
           isClosable: true,
         });
@@ -31,18 +37,8 @@ const EmployeeTable = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  const handleDelete = (employee) => {
-    if (employee.currentStatus) {
-      toast({
-        title: "Can't delete employee",
-        description: "CAN’T DELETE EMPLOYEE – STATUS ACTIVE",
-        status: 'warning',
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      deleteEmployee({ variables: { id: employee.id } });
-    }
+  const handleDeactivate = (employee) => {
+    deactivateEmployee({ variables: { id: employee.id } });
   };
 
   const openUpdateModal = (id) => {
@@ -57,9 +53,18 @@ const EmployeeTable = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+  if (!data || !data.employees) return <p>No data found.</p>;
 
   return (
     <>
+      <Select
+        mb={5}
+        value={isActiveFilter}
+        onChange={(e) => setIsActiveFilter(e.target.value === 'true')}
+      >
+        <option value={true}>Active Employees</option>
+        <option value={false}>Inactive Employees</option>
+      </Select>
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -92,8 +97,12 @@ const EmployeeTable = () => {
                 <Button colorScheme="yellow" onClick={() => openUpdateModal(employee.id)} mr={2}>
                   Edit
                 </Button>
-                <Button colorScheme="red" onClick={() => handleDelete(employee)}>
-                  Delete
+                <Button
+                  colorScheme="red"
+                  onClick={() => handleDeactivate(employee)}
+                  disabled={employee.currentStatus}
+                >
+                  Deactivate
                 </Button>
               </Td>
             </Tr>

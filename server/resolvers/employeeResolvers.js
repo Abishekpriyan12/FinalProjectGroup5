@@ -2,22 +2,20 @@ const Employee = require('../models/Employee');
 
 const resolvers = {
   Query: {
-    employees: async (_, { type, filterRetirement }) => {
+    employees: async (_, { type, isActive }) => {
       let query = {};
       if (type && type !== 'all') {
         query.employeeType = type;
       }
-      if (filterRetirement) {
-        const sixMonthsAhead = new Date(new Date().setMonth(new Date().getMonth() + 6));
-        query.retirementDate = { $lt: sixMonthsAhead.toISOString() };
+      if (isActive !== undefined) {
+        query.isActive = isActive;
       }
       return await Employee.find(query);
     },
     employee: async (_, { id }) => await Employee.findById(id),
   },
   Mutation: {
-    createEmployee: async (_, { firstName, lastName, age, dateOfJoining, title, department, employeeType, currentStatus = true }) => {
-      // Default currentStatus to true if not provided
+    createEmployee: async (_, { firstName, lastName, age, dateOfJoining, title, department, employeeType, currentStatus }) => {
       const newEmployee = new Employee({
         firstName,
         lastName,
@@ -27,21 +25,15 @@ const resolvers = {
         department,
         employeeType,
         currentStatus,
-        retirementDate: new Date(new Date(dateOfJoining).setFullYear(new Date(dateOfJoining).getFullYear() + 65 - age)).toISOString()
+        isActive: true  
       });
       await newEmployee.save();
       return newEmployee;
     },
     updateEmployee: async (_, { id, title, department, currentStatus }) => {
-      // Ensures that all fields are treated properly and currentStatus is not accidentally set to undefined
-      const updateData = { title, department };
-      if (currentStatus !== undefined) {
-        updateData.currentStatus = currentStatus;
-      }
-      const updatedEmployee = await Employee.findByIdAndUpdate(id, updateData, { new: true });
-      return updatedEmployee;
+      return await Employee.findByIdAndUpdate(id, { title, department, currentStatus }, { new: true });
     },
-    deleteEmployee: async (_, { id }) => {
+    deactivateEmployee: async (_, { id }) => {
       const employee = await Employee.findById(id);
       if (!employee) {
         return {
@@ -53,18 +45,18 @@ const resolvers = {
       if (employee.currentStatus) {
         return {
           success: false,
-          message: "CAN'T DELETE EMPLOYEE – STATUS ACTIVE",
-          employee: null
+          message: "Active employees cannot be deactivated",
+          employee
         };
       }
-      await Employee.findByIdAndDelete(id);
+      employee.isActive = false;
+      await employee.save();
       return {
         success: true,
-        message: "Employee deleted successfully",
+        message: "Employee deactivated successfully",
         employee
       };
     }
-    
   }
 };
 

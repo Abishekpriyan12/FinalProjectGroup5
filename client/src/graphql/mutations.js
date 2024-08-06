@@ -9,7 +9,7 @@ export const CREATE_EMPLOYEE = gql`
     $title: String!,
     $department: String!,
     $employeeType: String!,
-    $currentStatus: Boolean
+    $currentStatus: Boolean!
   ) {
     createEmployee(
       firstName: $firstName,
@@ -39,7 +39,7 @@ export const UPDATE_EMPLOYEE = gql`
     $id: ID!,
     $title: String,
     $department: String,
-    $currentStatus: Boolean
+    $currentStatus: Boolean!
   ) {
     updateEmployee(
       id: $id,
@@ -55,17 +55,17 @@ export const UPDATE_EMPLOYEE = gql`
   }
 `;
 
-
-
-export const DELETE_EMPLOYEE = gql`
-  mutation DeleteEmployee($id: ID!) {
-    deleteEmployee(id: $id) {
+export const DEACTIVATE_EMPLOYEE = gql`
+  mutation DeactivateEmployee($id: ID!) {
+    deactivateEmployee(id: $id) {
       success
       message
       employee {
         id
+        currentStatus
+        isActive
       }
     }
   }
-  
 `;
+  
