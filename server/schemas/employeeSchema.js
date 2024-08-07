@@ -1,17 +1,18 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
   type Employee {
     id: ID!
     firstName: String!
     lastName: String!
-    age: Int!
+    dob: String
     dateOfJoining: String!
     title: String!
     department: String!
     employeeType: String!
     currentStatus: Boolean!
     isActive: Boolean!
+    dateOfRetirement: String
   }
 
   type DeleteResponse {
@@ -21,27 +22,32 @@ const typeDefs = gql`
   }
 
   type Query {
-    employees(type: String, isActive: Boolean): [Employee]
+    employees(
+      type: String
+      isActive: Boolean
+      upcomingRetirement: Boolean
+    ): [Employee]
     employee(id: ID!): Employee
   }
 
   type Mutation {
     createEmployee(
-      firstName: String!,
-      lastName: String!,
-      age: Int!,
-      dateOfJoining: String!,
-      title: String!,
-      department: String!,
-      employeeType: String!,
+      firstName: String!
+      lastName: String!
+      dob: String
+      dateOfJoining: String!
+      title: String!
+      department: String!
+      employeeType: String!
       currentStatus: Boolean!
     ): Employee
 
     updateEmployee(
-      id: ID!,
-      title: String,
-      department: String,
+      id: ID!
+      title: String
+      department: String
       currentStatus: Boolean!
+      dob: String
     ): Employee
 
     deactivateEmployee(id: ID!): DeleteResponse
