@@ -38,6 +38,11 @@ export const GET_EMPLOYEE = gql`
       employeeType
       currentStatus
       isActive
+      timeToRetirement {
+        days
+        months
+        years
+      }
     }
   }
 `;
