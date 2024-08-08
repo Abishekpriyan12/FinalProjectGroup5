@@ -1,12 +1,20 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 export const GET_EMPLOYEES = gql`
-  query GetEmployees($type: String, $isActive: Boolean) {
-    employees(type: $type, isActive: $isActive) {
+  query GetEmployees(
+    $type: String
+    $isActive: Boolean
+    $upcomingRetirement: Boolean
+  ) {
+    employees(
+      type: $type
+      isActive: $isActive
+      upcomingRetirement: $upcomingRetirement
+    ) {
       id
       firstName
       lastName
-      age
+      dob
       dateOfJoining
       title
       department
@@ -23,7 +31,7 @@ export const GET_EMPLOYEE = gql`
       id
       firstName
       lastName
-      age
+      dob
       dateOfJoining
       title
       department
