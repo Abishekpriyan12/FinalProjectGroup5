@@ -1,6 +1,12 @@
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
+  type RetirementTime {
+    days: Int
+    months: Int
+    years: Int
+  }
+
   type Employee {
     id: ID!
     firstName: String!
@@ -12,6 +18,7 @@ const typeDefs = gql`
     employeeType: String!
     currentStatus: Boolean!
     isActive: Boolean!
+    timeToRetirement: RetirementTime
   }
 
   type DeleteResponse {

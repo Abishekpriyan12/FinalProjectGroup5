@@ -1,8 +1,26 @@
 const Employee = require("../models/Employee");
 const retirementAge = 65;
 
+const calculateTimeToRetirement = (dob) => {
+  const today = new Date();
+  const retirementDate = new Date(dob.getFullYear() + retirementAge, dob.getMonth(), dob.getDate());
+  const diffTime = Math.abs(retirementDate - today);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffYears = retirementDate.getFullYear() - today.getFullYear();
+  const diffMonths = (retirementDate.getMonth() + 12 * diffYears) - today.getMonth();
+  
+  const timeToRetirement = {
+    days: diffDays % 30,
+    months: diffMonths % 12,
+    years: Math.floor(diffMonths / 12),
+  };
+
+  console.log("Calculated time to retirement:", timeToRetirement);
+  return timeToRetirement;
+};
 const resolvers = {
   Query: {
+   
     employees: async (_, { type, isActive, upcomingRetirement }) => {
       let query = {};
       if (type && type !== "all") {
@@ -51,19 +69,30 @@ const resolvers = {
       return employees;
     },
     employee: async (_, { id }) => {
-      try {
-        const employee = await Employee.findById(id);
-        if (!employee) {
-          console.log("No employee found with id:", id);
-          return null; // or throw new Error('Employee not found');
-        }
-        return employee;
-      } catch (error) {
-        console.error("Error fetching employee by ID:", error);
-        throw new Error("Error fetching employee");
+      const employee = await Employee.findById(id);
+      if (!employee) {
+        throw new Error(`Employee with ID ${id} not found`);
       }
+
+      
+      const result = {
+        id: employee._id.toString(),  
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        dob: employee.dob.toISOString(),
+        dateOfJoining: employee.dateOfJoining.toISOString(),
+        title: employee.title,
+        department: employee.department,
+        employeeType: employee.employeeType,
+        currentStatus: employee.currentStatus,
+        isActive: employee.isActive,
+        timeToRetirement: calculateTimeToRetirement(new Date(employee.dob))
+      };
+
+      console.log(result); 
+      return result;
     },
-    // Other existing query resolvers...
+  
   },
   Mutation: {
     createEmployee: async (

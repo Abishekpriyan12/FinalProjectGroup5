@@ -8,15 +8,14 @@ import { Box, Heading, Text, Button, Flex } from '@chakra-ui/react';
 const EmployeeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { loading, error, data } = useQuery(GET_EMPLOYEE, {
-    variables: { id },
-  });
+  const { loading, error, data } = useQuery(GET_EMPLOYEE, { variables: { id } });
   const [deactivateEmployee] = useMutation(DEACTIVATE_EMPLOYEE);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+  if (!data || !data.employee) return <p>Employee not found!</p>;
 
-  const employee = data.employee;
+  const { employee } = data;
 
   const handleDeactivate = async () => {
     await deactivateEmployee({ variables: { id: employee.id } });
@@ -29,9 +28,7 @@ const EmployeeDetails = () => {
 
   return (
     <Box p={4}>
-      <Heading as="h2" size="lg" mb={4}>
-        Employee Details
-      </Heading>
+      <Heading as="h2" size="lg" mb={4}>Employee Details</Heading>
       <Text><strong>First Name:</strong> {employee.firstName}</Text>
       <Text><strong>Last Name:</strong> {employee.lastName}</Text>
       <Text><strong>Age:</strong> {employee.age}</Text>
@@ -40,10 +37,14 @@ const EmployeeDetails = () => {
       <Text><strong>Department:</strong> {employee.department}</Text>
       <Text><strong>Employee Type:</strong> {employee.employeeType}</Text>
       <Text><strong>Status:</strong> {employee.currentStatus ? 'Working' : 'Retired'}</Text>
+      <Text>
+        <strong>Time until Retirement:</strong> 
+        {employee.timeToRetirement.years} years, 
+        {employee.timeToRetirement.months} months, 
+        {employee.timeToRetirement.days} days
+      </Text>
       <Flex mt={4}>
-        <Button colorScheme="blue" onClick={handleEdit} mr={2}>
-          Edit
-        </Button>
+        <Button colorScheme="blue" onClick={handleEdit} mr={2}>Edit</Button>
         <Button colorScheme="red" onClick={handleDeactivate}>
           {employee.currentStatus ? 'Deactivate' : 'Already Inactive'}
         </Button>
