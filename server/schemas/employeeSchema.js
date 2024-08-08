@@ -12,7 +12,6 @@ const typeDefs = gql`
     employeeType: String!
     currentStatus: Boolean!
     isActive: Boolean!
-    dateOfRetirement: String
   }
 
   type DeleteResponse {

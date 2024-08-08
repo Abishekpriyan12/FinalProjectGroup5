@@ -18,16 +18,26 @@ import EmployeeUpdateModal from "./EmployeeUpdateModal";
 
 // Helper function to calculate age
 function calculateAge(dob) {
-  const birthday = new Date(dob);
+  if (!dob) {
+    console.log("DOB is undefined or null");
+    return "N/A"; // Handle undefined or null DOB
+  }
+
+  const birthday = new Date(parseInt(dob)); // Use parseInt to ensure the dob is a number
+  if (isNaN(birthday.getTime())) {
+    console.log(`Invalid DOB: ${dob}`);
+    return "Invalid DOB"; // Handle invalid DOB
+  }
+
   const today = new Date();
   let age = today.getFullYear() - birthday.getFullYear();
   const m = today.getMonth() - birthday.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birthday.getDate())) {
     age--;
   }
+
   return age;
 }
-
 const EmployeeTable = () => {
   const [filter, setFilter] = useState({
     isActive: true,
@@ -38,6 +48,10 @@ const EmployeeTable = () => {
   const { loading, error, data, refetch } = useQuery(GET_EMPLOYEES, {
     variables: filter,
   });
+
+  // Console log to inspect the data and filter
+  console.log("Employee Data:", data);
+  console.log("Current Filters:", filter);
 
   const toast = useToast();
   const [deactivateEmployee] = useMutation(DEACTIVATE_EMPLOYEE, {
@@ -80,7 +94,8 @@ const EmployeeTable = () => {
   };
 
   const handleFilterChange = (name, value) => {
-    setFilter((prev) => ({ ...prev, [name]: value }));
+    const booleanValue = value === "true"; // Convert string to Boolean
+    setFilter((prev) => ({ ...prev, [name]: booleanValue }));
   };
 
   if (loading) return <p>Loading...</p>;
@@ -92,9 +107,7 @@ const EmployeeTable = () => {
       <Select
         placeholder="Select status"
         value={filter.isActive.toString()}
-        onChange={(e) =>
-          handleFilterChange("isActive", e.target.value === "true")
-        }
+        onChange={(e) => handleFilterChange("isActive", e.target.value)}
       >
         <option value="true">Active Employees</option>
         <option value="false">Inactive Employees</option>
@@ -103,7 +116,7 @@ const EmployeeTable = () => {
         placeholder="Retirement filter"
         value={filter.upcomingRetirement.toString()}
         onChange={(e) =>
-          handleFilterChange("upcomingRetirement", e.target.value === "true")
+          handleFilterChange("upcomingRetirement", e.target.value)
         }
       >
         <option value="false">All Employees</option>
@@ -158,7 +171,7 @@ const EmployeeTable = () => {
                 <Button
                   colorScheme="red"
                   onClick={() => handleDeactivate(employee)}
-                  disabled={employee.currentStatus}
+                  disabled={!employee.currentStatus}
                 >
                   Deactivate
                 </Button>

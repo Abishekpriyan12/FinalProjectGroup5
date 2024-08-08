@@ -21,7 +21,6 @@ export const GET_EMPLOYEES = gql`
       employeeType
       currentStatus
       isActive
-      dateOfRetirement
     }
   }
 `;
@@ -39,8 +38,6 @@ export const GET_EMPLOYEE = gql`
       employeeType
       currentStatus
       isActive
-      dateOfRetirement
     }
   }
 `;
-                   
