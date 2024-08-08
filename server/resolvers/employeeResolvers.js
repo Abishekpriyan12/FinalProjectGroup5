@@ -50,6 +50,20 @@ const resolvers = {
 
       return employees;
     },
+    employee: async (_, { id }) => {
+      try {
+        const employee = await Employee.findById(id);
+        if (!employee) {
+          console.log("No employee found with id:", id);
+          return null; // or throw new Error('Employee not found');
+        }
+        return employee;
+      } catch (error) {
+        console.error("Error fetching employee by ID:", error);
+        throw new Error("Error fetching employee");
+      }
+    },
+    // Other existing query resolvers...
   },
   Mutation: {
     createEmployee: async (
